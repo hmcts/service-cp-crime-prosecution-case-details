@@ -1,0 +1,80 @@
+tasks.register('api', Test) {
+  description = "Runs api tests against docker-compose stack"
+  group = "Verification"
+
+  mustRunAfter tasks.named('test')
+
+  testClassesDirs = sourceSets.apiTest.output.classesDirs
+  classpath       = sourceSets.apiTest.runtimeClasspath
+  useJUnitPlatform()
+
+  dependsOn tasks.composeUp
+  finalizedBy tasks.composeDown
+
+  jvmArgs = ['-Xshare:off']
+  testLogging {
+    events "passed", "skipped", "failed"
+    exceptionFormat = 'full'
+    showStandardStreams = true
+  }
+}
+
+tasks.named('check') {
+  dependsOn tasks.named('api')
+}
+
+tasks.named('build') {
+  dependsOn tasks.named('test')
+  dependsOn tasks.named('api')
+}
+
+sourceSets {
+  apiTest {
+    java {
+      compileClasspath += sourceSets.main.output
+      runtimeClasspath += sourceSets.main.output
+
+    }
+    resources.srcDir file('src/apiTest/resources')
+  }
+}
+
+configurations {
+  apiTestImplementation.extendsFrom testImplementation
+  apiTestRuntimeOnly.extendsFrom testRuntimeOnly
+
+  // Ensure testRuntimeClasspath can be resolved for agent injection
+  testRuntimeClasspath {
+    canBeResolved = true
+  }
+}
+
+dependencies {
+  apiTestImplementation platform('org.junit:junit-bom:5.13.4')
+  apiTestRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+
+  apiTestImplementation('org.springframework.boot:spring-boot-starter-test') {
+    exclude group: 'junit', module: 'junit'
+    exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+  }
+  apiTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  apiTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+  apiTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+}
+
+dockerCompose {
+  useComposeFiles = ['docker-compose.yml']
+  startedServices = ['app', 'db']
+
+  buildBeforeUp = true
+  waitForTcpPorts = true
+  upAdditionalArgs = ['--wait', '--wait-timeout', '120']
+
+  captureContainersOutput = true
+  removeOrphans = true
+  stopContainers = true
+  removeContainers = true
+
+  useDockerComposeV2 = true
+  dockerExecutable = 'docker'
+}
