@@ -30,7 +30,7 @@ class RootControllerIntegrationTest extends IntegrationTestBase {
     @DisplayName("Actuator health status should be UP")
     @Test
     void shouldCallActuatorAndGet200() throws Exception {
-        mockMvc.perform(get("/health"))
+        mockMvc.perform(get("/actuator/health"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"));
