@@ -1,4 +1,4 @@
-package uk.gov.hmcts.cp.http;
+package uk.gov.hmcts.cp;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -14,13 +14,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ActuatorApiTest {
 
-    private final String baseUrl = System.getProperty("app.baseUrl", "http://localhost:8082");
+    private final String baseUrl = System.getProperty("app.baseUrl", "http://localhost:4550");
     private final RestTemplate http = new RestTemplate();
 
     @Test
-    void health_is_up() {
+    void health_is_up() throws InterruptedException {
         final ResponseEntity<String> res = http.exchange(
-                baseUrl + "/actuator/health", HttpMethod.GET,
+                // Odd to expose actuator info on root not the sensible default of /actuator/info etc
+                baseUrl + "/health", HttpMethod.GET,
                 new HttpEntity<>(new HttpHeaders()),
                 String.class
         );
