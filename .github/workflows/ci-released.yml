@@ -10,7 +10,6 @@ jobs:
     uses: ./.github/workflows/ci-build-publish.yml
     secrets: inherit
     with:
-      environment: dev
       is_release: true
       is_publish: true
       trigger_docker: true
