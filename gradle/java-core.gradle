@@ -12,15 +12,11 @@ dependencies {
   implementation 'ch.qos.logback:logback-core'
   implementation "org.owasp.encoder:encoder:1.2.3"
 
-  compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-  annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-  testCompileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-  testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+  compileOnly "org.projectlombok:lombok:$lombokVersion"
+  annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+  testCompileOnly "org.projectlombok:lombok:$lombokVersion"
+  testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
   implementation "org.mapstruct:mapstruct:$mapstructVersion"
   annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
-}
-
-tasks.named('wrapper') {
-  delete "${projectDir}/gradlew.bat"
 }

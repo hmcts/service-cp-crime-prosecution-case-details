@@ -1,0 +1,54 @@
+tasks.register('apiTest', Test) {
+  description = "Runs api tests against docker-compose stack"
+  group = "Verification"
+
+  mustRunAfter tasks.named('test')
+
+  testClassesDirs = sourceSets.apiTest.output.classesDirs
+  classpath = sourceSets.apiTest.runtimeClasspath
+  useJUnitPlatform()
+
+  dependsOn tasks.composeUp
+  finalizedBy tasks.composeDown
+}
+
+tasks.named('check') {
+  dependsOn tasks.named('apiTest')
+}
+
+tasks.named('build') {
+  dependsOn tasks.named('test')
+  dependsOn tasks.named('apiTest')
+}
+
+sourceSets {
+  apiTest {
+    java {
+      compileClasspath += sourceSets.main.output
+      runtimeClasspath += sourceSets.main.output
+
+    }
+  }
+}
+
+configurations {
+  apiTestImplementation.extendsFrom testImplementation
+  apiTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+dockerCompose {
+  useComposeFiles = ['docker-compose.yml']
+  startedServices = ['wiremock','app']
+
+  buildBeforeUp = true
+  waitForTcpPorts = true
+  upAdditionalArgs = ['--wait', '--wait-timeout', '120']
+
+  captureContainersOutput = true
+  removeOrphans = true
+  stopContainers = true
+  removeContainers = true
+
+  useDockerComposeV2 = true
+  dockerExecutable = 'docker'
+}

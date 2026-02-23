@@ -35,7 +35,7 @@ class TracingFilterTest {
         when(request.getHeader(TRACE_ID)).thenReturn("incoming-traceId");
         when(request.getHeader(SPAN_ID)).thenReturn("incoming-spanId");
 
-        tracingFilter.populateMDC(request, response, filterChain);
+        tracingFilter.doFilterInternal(request, response, filterChain);
 
         assertThat(MDC.get(APPLICATION_NAME)).isEqualTo("myAppName");
         verify(response).setHeader(TRACE_ID, "incoming-traceId");

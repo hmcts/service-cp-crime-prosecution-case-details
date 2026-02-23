@@ -1,4 +1,3 @@
-gradle
 bin/*
 !bin/run-in-docker.sh
 .gradle
