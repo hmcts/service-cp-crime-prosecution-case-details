@@ -7,9 +7,13 @@ on:
         required: true
       AZURE_DEVOPS_ARTIFACT_TOKEN:
         required: true
-      HMCTS_ADO_PAT:
+      HMCTS_CP_ADO_PAT:
         required: true
     inputs:
+      environment:
+        required: true
+        type: string
+        default: dev
       is_release:
         required: false
         type: boolean
@@ -24,10 +28,11 @@ on:
         required: true
         type: boolean
 
-
 jobs:
   Artefact-Version:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
     outputs:
       artefact_version: ${{ inputs.is_release && steps.artefact.outputs.release_version || steps.artefact.outputs.draft_version }}
     steps:
@@ -47,9 +52,12 @@ jobs:
   Build:
     needs: [Artefact-Version]
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
     outputs:
       repo_name: ${{ steps.repo_vars.outputs.repo_name }}
       artefact_name: ${{ steps.repo_vars.outputs.artefact_name }}
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v6
@@ -58,14 +66,19 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '25'
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: current
 
       - name: Gradle Build
         env:
           ARTEFACT_VERSION: ${{ needs.Artefact-Version.outputs.artefact_version }}
         run: |
           echo "Building with ARTEFACT_VERSION=$ARTEFACT_VERSION"
-          ./gradlew build -DARTEFACT_VERSION=$ARTEFACT_VERSION
+          gradle build -DARTEFACT_VERSION=$ARTEFACT_VERSION
 
       - name: Extract repo name
         id: repo_vars
@@ -77,12 +90,14 @@ jobs:
       - name: Upload JAR Artefact
         uses: actions/upload-artifact@v6
         with:
-          name: app-jar
+          name: app.jar
           path: build/libs/${{ steps.repo_vars.outputs.artefact_name }}.jar
 
   Provider-Deploy:
     needs: [ Artefact-Version, Build ]
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@v6
@@ -91,7 +106,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '25'
+          java-version: '21'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -105,7 +120,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AZURE_DEVOPS_ARTIFACT_USERNAME: ${{ secrets.AZURE_DEVOPS_ARTIFACT_USERNAME }}
           AZURE_DEVOPS_ARTIFACT_TOKEN: ${{ secrets.AZURE_DEVOPS_ARTIFACT_TOKEN }}
+          ENVIRONMENT: ${{ inputs.environment }}
         run: |
+          echo "Active environment=$ENVIRONMENT"
           if [ -z "AZURE_DEVOPS_ARTIFACT_USERNAME" ]; then
             echo "::warning::AZURE_DEVOPS_ARTIFACT_USERNAME is null or not set"
           fi
@@ -116,7 +133,7 @@ jobs:
 
           echo "Publishing artefact for version: $ARTEFACT_VERSION"
           
-          ./gradlew publish \
+          gradle publish \
             -DARTEFACT_VERSION=$ARTEFACT_VERSION \
             -DGITHUB_REPOSITORY=${{ github.repository }} \
             -DGITHUB_ACTOR=${{ github.actor }} \
@@ -128,6 +145,8 @@ jobs:
     needs: [ Provider-Deploy, Build, Artefact-Version ]
     if: ${{ inputs.trigger_docker }}
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6
@@ -135,7 +154,7 @@ jobs:
       - name: Download JAR Artefact
         uses: actions/download-artifact@v7
         with:
-          name: app-jar
+          name: app.jar
           path: build/libs
 
       - name: Set up Docker Buildx
@@ -157,7 +176,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ needs.Artefact-Version.outputs.artefact_version }}
           build-args: |
-            BASE_IMAGE=openjdk:21-jdk-slim
+            BASE_IMAGE=eclipse-temurin:21
             JAR_FILENAME=${{ needs.Build.outputs.artefact_name }}.jar
 
   Deploy:
@@ -172,7 +191,7 @@ jobs:
         uses: hmcts/trigger-ado-pipeline@v1
         with:
           pipeline_id: 460
-          ado_pat: ${{ secrets.HMCTS_ADO_PAT }}
+          ado_pat: ${{ secrets.HMCTS_CP_ADO_PAT }}
           template_parameters: >
             {
               "GROUP_ID": "uk.gov.hmcts.cp",
@@ -180,4 +199,3 @@ jobs:
               "ARTIFACT_VERSION": "${{ needs.Artefact-Version.outputs.artefact_version }}",
               "TARGET_REPOSITORY": "${{ github.repository }}"
             }
-

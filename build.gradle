@@ -1,56 +1,32 @@
 plugins {
   id 'application'
   id 'java'
-  id 'org.springframework.boot' version '4.0.0'
+  id 'org.springframework.boot' version '4.0.1'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'jacoco'
   id 'maven-publish'
   id 'com.github.ben-manes.versions' version '0.53.0'
-  id 'org.cyclonedx.bom' version '2.4.1'
-  id 'com.gorylenko.gradle-git-properties' version '2.5.3'
-  id 'com.avast.gradle.docker-compose' version '0.17.12'
+  id "org.cyclonedx.bom" version "3.1.0"
+  id 'com.avast.gradle.docker-compose' version '0.17.20'
 }
 
 group = 'uk.gov.hmcts.cp'
 version = System.getProperty('ARTEFACT_VERSION') ?: '0.0.999'
 
 apply {
-  from("$rootDir/gradle/dependencies/java-core.gradle")
-  from("$rootDir/gradle/dependencies/spring-core.gradle")
-  from("$rootDir/gradle/dependencies/spring-db.gradle")
+  from("$rootDir/gradle/java-core.gradle")
+  from("$rootDir/gradle/spring-core.gradle")
 
-  from("$rootDir/gradle/github/repositories.gradle")
-  from("$rootDir/gradle/github/java.gradle")
-  from("$rootDir/gradle/github/dependency.gradle")
-  from("$rootDir/gradle/github/pmd.gradle")
-  from("$rootDir/gradle/github/test.gradle")
-  from("$rootDir/gradle/github/jar.gradle")
+  from("$rootDir/gradle/repositories.gradle")
+  from("$rootDir/gradle/dependency.gradle")
+  from("$rootDir/gradle/pmd.gradle")
+  from("$rootDir/gradle/test.gradle")
+  from("$rootDir/gradle/jar.gradle")
 
-  from("$rootDir/gradle/tasks/api-test.gradle")
-}
-
-springBoot {
-  buildInfo {
-    properties {
-      name = project.name
-      version = project.version.toString()
-    }
-  }
+  from("$rootDir/gradle/apitest.gradle")
 }
 
 dependencies {
-  implementation("uk.gov.hmcts.cp:api-hmcts-crime-template:2.0.2")
-
-  // --- Observability / Actuator / OTEL / Prometheus ---
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
-  implementation 'org.hibernate.validator:hibernate-validator'
   implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
-  implementation 'io.jsonwebtoken:jjwt:0.13.0'
-  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-  // Should come in with the api
-  implementation 'io.swagger.core.v3:swagger-core:2.2.36'
-
-  testImplementation(platform('org.junit:junit-bom:5.13.4'))
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 }
