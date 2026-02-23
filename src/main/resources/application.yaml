@@ -8,7 +8,7 @@ management:
       show-details: "always"
   endpoints:
     web:
-      base-path: /
+      base-path: /actuator
       exposure:
         include: health, info, prometheus
   tracing:
