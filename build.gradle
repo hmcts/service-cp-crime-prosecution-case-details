@@ -15,7 +15,7 @@ version = System.getProperty('ARTEFACT_VERSION') ?: '0.0.999'
 
 apply {
   println("rootdir is set to $rootDir")
-  from("$rootDir/gradle/java-core.gradle")
+  from("./gradle/java-core.gradle")
   from("$rootDir/gradle/spring-core.gradle")
 
   from("$rootDir/gradle/repositories.gradle")
