@@ -16,13 +16,7 @@ management:
     sampling:
       probability: 1.0
 
-springdoc:
-  packagesToScan: uk.gov.hmcts.cp.controllers
-  writer-with-order-by-keys: true
-
 spring:
-  config:
-    import: "optional:configtree:/mnt/secrets/rpe/"
   application:
     name: service-cp-crime-prosecution-case-details
   web:

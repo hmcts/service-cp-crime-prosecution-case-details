@@ -20,7 +20,6 @@ class ActuatorApiTest {
     @Test
     void health_is_up() throws InterruptedException {
         final ResponseEntity<String> res = http.exchange(
-                // Odd to expose actuator info on root not the sensible default of /actuator/info etc
                 baseUrl + "/actuator/health", HttpMethod.GET,
                 new HttpEntity<>(new HttpHeaders()),
                 String.class

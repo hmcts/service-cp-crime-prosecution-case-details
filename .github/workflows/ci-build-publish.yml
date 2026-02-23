@@ -13,7 +13,6 @@ on:
       environment:
         required: true
         type: string
-        default: dev
       is_release:
         required: false
         type: boolean
