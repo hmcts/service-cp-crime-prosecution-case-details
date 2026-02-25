@@ -11,15 +11,15 @@ import java.util.Optional;
 @Component
 public class CaseDetailMapper {
 
-    public CaseDetailResponse mapToCaseDetailResponse(ProgressionResponse progressionResponse) {
-        Optional<ProgressionResponse.ProsecutionCase> prosecutionCase = Optional.ofNullable(progressionResponse)
+    public CaseDetailResponse mapToCaseDetailResponse(final ProgressionResponse progressionResponse) {
+        final Optional<ProgressionResponse.ProsecutionCase> prosecutionCase = Optional.ofNullable(progressionResponse)
                 .map(ProgressionResponse::getProsecutionCase);
 
-        String caseStatus = prosecutionCase
+        final String caseStatus = prosecutionCase
                 .map(ProgressionResponse.ProsecutionCase::getCaseStatus)
                 .orElse(null);
 
-        Boolean reportingRestrictions = Optional.ofNullable(progressionResponse)
+        final Boolean reportingRestrictions = Optional.ofNullable(progressionResponse)
                 .map(ProgressionResponse::getProsecutionCase)
                 .map(ProgressionResponse.ProsecutionCase::getDefendants)
                 .orElse(Collections.emptyList())
