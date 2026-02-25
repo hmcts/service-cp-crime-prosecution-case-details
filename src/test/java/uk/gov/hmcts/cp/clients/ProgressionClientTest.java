@@ -36,7 +36,7 @@ class ProgressionClientTest {
         ProgressionResponse progressionResponse = Mockito.mock(ProgressionResponse.class);
         when(appProperties.getProgressionUrl()).thenReturn("http://localhost");
         when(appProperties.getProgressionUrl()).thenReturn("/progression-query-api/query/api/rest/progression/prosecutioncases");
-        UUID caseUrn = UUID.randomUUID();
+        UUID caseId = UUID.randomUUID();
         when(restTemplate.exchange(
                 anyString(),
                 eq(HttpMethod.GET),
@@ -44,7 +44,7 @@ class ProgressionClientTest {
                 eq(ProgressionResponse.class)
         )).thenReturn(ResponseEntity.ok(progressionResponse));
 
-        ProgressionResponse response = progressionClient.getProgressionResponse(caseUrn.toString());
+        ProgressionResponse response = progressionClient.getProgressionResponse(caseId);
         assertEquals(progressionResponse, response);
     }
 }

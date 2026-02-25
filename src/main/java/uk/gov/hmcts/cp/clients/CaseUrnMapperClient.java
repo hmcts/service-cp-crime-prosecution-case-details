@@ -15,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.cp.config.AppPropertiesBackend;
 import uk.gov.hmcts.cp.domain.CaseMapperResponse;
 
+import java.util.UUID;
+
 @Component
 @Primary
 @RequiredArgsConstructor
@@ -23,7 +25,7 @@ public class CaseUrnMapperClient {
     private final AppPropertiesBackend appProperties;
     private final RestTemplate restTemplate;
 
-    public String getCaseId(final String caseUrn) {
+    public UUID getCaseId(final String caseUrn) {
         final String sanitizedCaseUrn = Encode.forJava(caseUrn);
         final String url = getCaseIdUrl(caseUrn);
         log.info("Getting caseId from {}", url);

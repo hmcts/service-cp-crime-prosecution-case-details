@@ -13,6 +13,8 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.cp.config.AppPropertiesBackend;
 import uk.gov.hmcts.cp.domain.ProgressionResponse;
 
+import java.util.UUID;
+
 @Component
 @Primary
 @RequiredArgsConstructor
@@ -22,7 +24,7 @@ public class ProgressionClient {
     private final AppPropertiesBackend appProperties;
     private final RestTemplate restTemplate;
 
-    public ProgressionResponse getProgressionResponse(final String caseId) {
+    public ProgressionResponse getProgressionResponse(final UUID caseId) {
         final String url = buildUrl(caseId);
         log.info("Getting hearings from {}", Encode.forJava(url));
         final ResponseEntity<ProgressionResponse> response = restTemplate.exchange(
@@ -34,7 +36,7 @@ public class ProgressionClient {
         return response.getBody();
     }
 
-    private String buildUrl(final String caseId) {
+    private String buildUrl(final UUID caseId) {
         return String.format("%s%s/%s", appProperties.getProgressionUrl(), appProperties.getProgressionPath(), caseId);
     }
 

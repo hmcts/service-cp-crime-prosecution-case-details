@@ -12,6 +12,8 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.cp.config.AppPropertiesBackend;
 import uk.gov.hmcts.cp.domain.CaseMapperResponse;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -31,7 +33,7 @@ class CaseUrnMapperClientTest {
     private final String mockUrl = "http://mock-server/mapper";
     private final String mockPath = "/urnmapper";
     private final String caseUrn = "test-case-urn";
-    private final String caseId = "7a2e94c4-38af-43dd-906b-40d632d159b0";
+    private final UUID caseId = UUID.fromString("7a2e94c4-38af-43dd-906b-40d632d159b0");
 
     @Test
     void shouldReturnCaseIdWhenResponseIsSuccessful() {
@@ -47,7 +49,7 @@ class CaseUrnMapperClientTest {
                 eq(CaseMapperResponse.class)
         )).thenReturn(ResponseEntity.ok(response));
 
-        String result = caseUrnMapperClient.getCaseId(caseUrn);
+        UUID result = caseUrnMapperClient.getCaseId(caseUrn);
 
         assertEquals(caseId, result);
     }

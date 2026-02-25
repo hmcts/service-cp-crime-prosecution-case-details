@@ -11,6 +11,8 @@ import uk.gov.hmcts.cp.domain.ProgressionResponse;
 import uk.gov.hmcts.cp.mappers.CaseDetailMapper;
 import uk.gov.hmcts.cp.openapi.model.CaseDetailResponse;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -19,7 +21,7 @@ public class CaseDetailService {
     private final ProgressionClient progressionClient;
     private final CaseDetailMapper caseDetailMapper;
 
-    public CaseDetailResponse getCaseDetailsByCaseId(final String caseId) throws ResponseStatusException {
+    public CaseDetailResponse getCaseDetailsByCaseId(final UUID caseId) throws ResponseStatusException {
         validateOrThrowError(caseId, HttpStatus.BAD_REQUEST, "caseId is mandatory");
         final ProgressionResponse progressionResponse = progressionClient.getProgressionResponse(caseId);
         validateOrThrowError(progressionResponse.getProsecutionCase(), HttpStatus.NOT_FOUND, "progression response should not be empty");

@@ -5,17 +5,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
+import java.util.UUID;
 
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class CaseMapperResponse implements Serializable {
+public class CaseMapperResponse {
 
-    private static final long serialVersionUID = 1L;
-
-    private String caseId;
+    private UUID caseId;
 
     private String caseUrn;
 

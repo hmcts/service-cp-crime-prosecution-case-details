@@ -12,6 +12,8 @@ import uk.gov.hmcts.cp.openapi.model.CaseDetailResponse;
 import uk.gov.hmcts.cp.services.CaseDetailService;
 import uk.gov.hmcts.cp.services.CaseUrnMapperService;
 
+import java.util.UUID;
+
 @RestController
 @Slf4j
 public class CaseDetailController implements CaseDetailsApi {
@@ -30,7 +32,7 @@ public class CaseDetailController implements CaseDetailsApi {
         try {
             final String sanitizedCaseUrn = Encode.forJava(caseUrn);
             log.info("Received request to get case details for caseUrn:{}", sanitizedCaseUrn);
-            final String caseId = caseUrnMapperService.getCaseId(sanitizedCaseUrn);
+            final UUID caseId = caseUrnMapperService.getCaseId(sanitizedCaseUrn);
             final CaseDetailResponse caseDetailResponse = caseDetailService.getCaseDetailsByCaseId(caseId);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)

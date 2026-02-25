@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -14,9 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class ProgressionResponse implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class ProgressionResponse {
     private ProsecutionCase prosecutionCase;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -24,9 +21,7 @@ public class ProgressionResponse implements Serializable {
     @AllArgsConstructor
     @NoArgsConstructor
     @Getter
-    public static class ProsecutionCase implements Serializable {
-        private static final long serialVersionUID = 2L;
-
+    public static class ProsecutionCase {
         private String caseStatus;
         private List<Defendant> defendants;
 
@@ -35,9 +30,7 @@ public class ProgressionResponse implements Serializable {
         @AllArgsConstructor
         @NoArgsConstructor
         @Getter
-        public static class Defendant implements Serializable {
-            private static final long serialVersionUID = 3L;
-
+        public static class Defendant {
             private List<Offence> offences;
         }
 
@@ -46,9 +39,7 @@ public class ProgressionResponse implements Serializable {
         @AllArgsConstructor
         @NoArgsConstructor
         @Getter
-        public static class Offence implements Serializable {
-            private static final long serialVersionUID = 4L;
-
+        public static class Offence {
             private List<ReportingRestriction> reportingRestrictions;
         }
 
@@ -57,9 +48,7 @@ public class ProgressionResponse implements Serializable {
         @AllArgsConstructor
         @NoArgsConstructor
         @Getter
-        public static class ReportingRestriction implements Serializable {
-            private static final long serialVersionUID = 5L;
-
+        public static class ReportingRestriction {
             private String id;
             private String orderedDate;
         }

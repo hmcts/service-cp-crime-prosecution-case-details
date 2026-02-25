@@ -38,7 +38,7 @@ class CaseDetailControllerTest {
     @Test
     void getCaseDetails_ShouldReturnWithOkStatus() {
         UUID caseUrn = UUID.randomUUID();
-        String caseId = UUID.randomUUID().toString();
+        UUID caseId = UUID.randomUUID();
 
         CaseDetailResponse mockResponse = CaseDetailResponse.builder()
                 .caseStatus(ACTIVE_STATUS)
@@ -62,7 +62,7 @@ class CaseDetailControllerTest {
     @Test
     void getCaseDetailsByCaseUrn_ShouldSanitizeCaseUrn() {
         String unsanitizedCaseUrn = "<script>alert('xss')</script>";
-        String caseId = UUID.randomUUID().toString();
+        UUID caseId = UUID.randomUUID();
         CaseDetailResponse mockResponse = CaseDetailResponse.builder()
                 .build();
 
