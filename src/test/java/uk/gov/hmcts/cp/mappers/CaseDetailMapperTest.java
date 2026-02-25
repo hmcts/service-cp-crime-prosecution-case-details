@@ -12,7 +12,7 @@ import uk.gov.hmcts.cp.openapi.model.CaseDetailResponse;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class CaseDetailMapperTest {
@@ -20,48 +20,35 @@ class CaseDetailMapperTest {
     private final CaseDetailMapper caseDetailMapper = new CaseDetailMapper();
 
     @Test
-    void mapToCaseDetailResponse_forNullResponse() {
-        CaseDetailResponse expectedResponse = CaseDetailResponse.builder()
-                .caseStatus(null)
-                .reportingRestrictions(false)
-                .build();
+    void null_progression_response_should_return_response() {
         CaseDetailResponse response = caseDetailMapper.mapToCaseDetailResponse(null);
-        assertEquals(expectedResponse, response);
+        assertThat(response.getCaseStatus()).isNull();
+        assertThat(response.getReportingRestrictions()).isFalse();
     }
 
     @Test
-    void mapToCaseDetailResponse_forNullProsecutionCaseResponse() {
-        CaseDetailResponse expectedResponse = CaseDetailResponse.builder()
-                .caseStatus(null)
-                .reportingRestrictions(false)
-                .build();
+    void null_progression_case_should_return_response() {
         ProgressionResponse progressionResponse = ProgressionResponse.builder()
                 .build();
         CaseDetailResponse response = caseDetailMapper.mapToCaseDetailResponse(progressionResponse);
-        assertEquals(expectedResponse, response);
+        assertThat(response.getCaseStatus()).isNull();
+        assertThat(response.getReportingRestrictions()).isFalse();
     }
 
     @Test
-    void mapToCaseDetailResponse_withoutDefendants() {
-        CaseDetailResponse expectedResponse = CaseDetailResponse.builder()
-                .caseStatus("case-study-status")
-                .reportingRestrictions(false)
-                .build();
+    void empty_defendants_should_return_response() {
         ProgressionResponse progressionResponse = ProgressionResponse.builder()
                 .prosecutionCase(ProsecutionCase.builder()
                         .caseStatus("case-study-status")
                         .build())
                 .build();
         CaseDetailResponse response = caseDetailMapper.mapToCaseDetailResponse(progressionResponse);
-        assertEquals(expectedResponse, response);
+        assertThat(response.getCaseStatus()).isEqualTo("case-study-status");
+        assertThat(response.getReportingRestrictions()).isFalse();
     }
 
     @Test
-    void mapToCaseDetailResponse_withoutOffenses() {
-        CaseDetailResponse expectedResponse = CaseDetailResponse.builder()
-                .caseStatus("case-study-status")
-                .reportingRestrictions(false)
-                .build();
+    void empty_offenses_should_return_response() {
         ProgressionResponse progressionResponse = ProgressionResponse.builder()
                 .prosecutionCase(ProsecutionCase.builder()
                         .caseStatus("case-study-status")
@@ -69,15 +56,12 @@ class CaseDetailMapperTest {
                         .build())
                 .build();
         CaseDetailResponse response = caseDetailMapper.mapToCaseDetailResponse(progressionResponse);
-        assertEquals(expectedResponse, response);
+        assertThat(response.getCaseStatus()).isEqualTo("case-study-status");
+        assertThat(response.getReportingRestrictions()).isFalse();
     }
 
     @Test
-    void mapToCaseDetailResponse_withoutReportingRestrictions() {
-        CaseDetailResponse expectedResponse = CaseDetailResponse.builder()
-                .caseStatus("case-study-status")
-                .reportingRestrictions(false)
-                .build();
+    void empty_reporting_restrictions_should_return_response() {
         ProgressionResponse progressionResponse = ProgressionResponse.builder()
                 .prosecutionCase(ProsecutionCase.builder()
                         .caseStatus("case-study-status")
@@ -87,15 +71,12 @@ class CaseDetailMapperTest {
                         .build())
                 .build();
         CaseDetailResponse response = caseDetailMapper.mapToCaseDetailResponse(progressionResponse);
-        assertEquals(expectedResponse, response);
+        assertThat(response.getCaseStatus()).isEqualTo("case-study-status");
+        assertThat(response.getReportingRestrictions()).isFalse();
     }
 
     @Test
-    void mapToCaseDetailResponse_withReportingRestrictions() {
-        CaseDetailResponse expectedResponse = CaseDetailResponse.builder()
-                .caseStatus("case-study-status")
-                .reportingRestrictions(true)
-                .build();
+    void valid_reporting_restrictions_should_return_response() {
         ProgressionResponse progressionResponse = ProgressionResponse.builder()
                 .prosecutionCase(ProsecutionCase.builder()
                         .caseStatus("case-study-status")
@@ -107,6 +88,7 @@ class CaseDetailMapperTest {
                         .build())
                 .build();
         CaseDetailResponse response = caseDetailMapper.mapToCaseDetailResponse(progressionResponse);
-        assertEquals(expectedResponse, response);
+        assertThat(response.getCaseStatus()).isEqualTo("case-study-status");
+        assertThat(response.getReportingRestrictions()).isTrue();
     }
 }
