@@ -14,7 +14,7 @@ import uk.gov.hmcts.cp.services.CaseUrnMapperService;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -51,12 +51,11 @@ class CaseDetailControllerTest {
         ResponseEntity<?> response = caseDetailController.getCaseDetailsByCaseUrn(caseUrn.toString());
 
         assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         CaseDetailResponse responseBody = (CaseDetailResponse) response.getBody();
-        assertNotNull(responseBody);
-        assertEquals(ACTIVE_STATUS, responseBody.getCaseStatus());
-        assertEquals(true, responseBody.getReportingRestrictions());
+        assertThat(responseBody.getCaseStatus()).isEqualTo(ACTIVE_STATUS);
+        assertThat(responseBody.getReportingRestrictions()).isTrue();
     }
 
     @Test
@@ -70,7 +69,6 @@ class CaseDetailControllerTest {
         lenient().when(caseDetailService.getCaseDetailsByCaseId(caseId)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = caseDetailController.getCaseDetailsByCaseUrn(unsanitizedCaseUrn);
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 }
