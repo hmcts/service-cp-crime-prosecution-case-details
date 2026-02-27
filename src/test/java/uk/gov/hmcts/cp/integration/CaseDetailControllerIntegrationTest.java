@@ -105,6 +105,24 @@ class CaseDetailControllerIntegrationTest extends IntegrationTestBase {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void missing_path_variable_should_return_404() throws Exception {
+        stubMappingResponse(caseUrn, caseId);
+        String expectedProgressionUrl = String.format("%s%s", appProperties.getProgressionUrl(), appProperties.getProgressionPath());
+
+        ResponseDefinitionBuilder mockResponse = aResponse()
+                .withStatus(HTTP_OK)
+                .withHeader("Content-Type", "application/json")
+                .withBody(readResourceContents("cp_response.json"));
+        log.info("Stubbing progression response url:{}", expectedProgressionUrl);
+        stubFor(WireMock.get(urlEqualTo(expectedProgressionUrl)).willReturn(mockResponse));
+
+        mockMvc.perform(get("/cases/{case_urn}", caseUrn)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
     private void stub_cp_response_and_verify_expected_amp_response(String cp_response_file, String expected_amp_response_file) {
         stubMappingResponse(caseUrn, caseId);
         stubGetProgressionCaseResponse(caseId, cp_response_file);
