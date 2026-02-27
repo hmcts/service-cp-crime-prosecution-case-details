@@ -108,14 +108,15 @@ class CaseDetailControllerIntegrationTest extends IntegrationTestBase {
     @Test
     void missing_path_variable_should_return_404() throws Exception {
         stubMappingResponse(caseUrn, caseId);
-        String expectedProgressionUrl = String.format("%s%s", appProperties.getProgressionUrl(), appProperties.getProgressionPath());
+        String expectedProgressionUrlWithMissingCaseUrn = String.format("%s%s", appProperties.getProgressionUrl(), appProperties.getProgressionPath());
 
         ResponseDefinitionBuilder mockResponse = aResponse()
                 .withStatus(HTTP_OK)
                 .withHeader("Content-Type", "application/json")
                 .withBody(readResourceContents("cp_response.json"));
-        log.info("Stubbing progression response url:{}", expectedProgressionUrl);
-        stubFor(WireMock.get(urlEqualTo(expectedProgressionUrl)).willReturn(mockResponse));
+
+        log.info("Stubbing progression response url:{}", expectedProgressionUrlWithMissingCaseUrn);
+        stubFor(WireMock.get(urlEqualTo(expectedProgressionUrlWithMissingCaseUrn)).willReturn(mockResponse));
 
         mockMvc.perform(get("/cases/{case_urn}", caseUrn)
                         .accept(MediaType.APPLICATION_JSON))
