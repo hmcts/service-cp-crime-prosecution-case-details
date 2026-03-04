@@ -1,5 +1,7 @@
 bin/*
 !bin/run-in-docker.sh
+.gradle
+/build/
 *.class
 bin/main/application.yaml
 
