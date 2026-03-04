@@ -7,12 +7,13 @@ on:
         required: true
       AZURE_DEVOPS_ARTIFACT_TOKEN:
         required: true
-      HMCTS_CP_ADO_PAT:
+      HMCTS_ADO_PAT:
         required: true
     inputs:
       environment:
         required: true
         type: string
+        default: dev
       is_release:
         required: false
         type: boolean
@@ -26,6 +27,11 @@ on:
       trigger_deploy:
         required: true
         type: boolean
+      run_api_test:
+        required: false
+        type: boolean
+        default: false
+
 
 jobs:
   Artefact-Version:
@@ -56,7 +62,6 @@ jobs:
     outputs:
       repo_name: ${{ steps.repo_vars.outputs.repo_name }}
       artefact_name: ${{ steps.repo_vars.outputs.artefact_name }}
-
     steps:
       - name: Checkout source code
         uses: actions/checkout@v6
@@ -65,7 +70,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -105,7 +110,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -175,7 +180,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ needs.Artefact-Version.outputs.artefact_version }}
           build-args: |
-            BASE_IMAGE=eclipse-temurin:21
+            BASE_IMAGE=eclipse-temurin:25
             JAR_FILENAME=${{ needs.Build.outputs.artefact_name }}.jar
 
   Deploy:
@@ -190,11 +195,13 @@ jobs:
         uses: hmcts/trigger-ado-pipeline@v1
         with:
           pipeline_id: 460
-          ado_pat: ${{ secrets.HMCTS_CP_ADO_PAT }}
+          ado_pat: ${{ secrets.HMCTS_ADO_PAT }}
           template_parameters: >
             {
               "GROUP_ID": "uk.gov.hmcts.cp",
               "ARTIFACT_ID": "${{ env.REPO_NAME }}",
               "ARTIFACT_VERSION": "${{ needs.Artefact-Version.outputs.artefact_version }}",
-              "TARGET_REPOSITORY": "${{ github.repository }}"
+              "TARGET_REPOSITORY": "${{ github.repository }}",
+              "agentDemand": "ubuntu-j25",
+              "baseImage": "hmcts/apm-services:25-jre"
             }

@@ -35,11 +35,12 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
+          config-file: ./.github/codeql/codeql-config.yml
 
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: 25
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -67,7 +68,7 @@ jobs:
         # - It's available to download and inspect from the GitHub Actions UI
       - name: Upload SBOM
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: build/resources/main/META-INF/sbom/application.cdx.json
