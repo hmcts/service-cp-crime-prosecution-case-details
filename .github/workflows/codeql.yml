@@ -63,9 +63,9 @@ jobs:
       - name: Log generated SBOM Hash
         run: sha256sum build/resources/main/META-INF/sbom/application.cdx.json || true
 
-        # This ensures:
-        # - The SBOM is archived with the CodeQL scan output
-        # - It's available to download and inspect from the GitHub Actions UI
+      # This ensures:
+      # - The SBOM is archived with the CodeQL scan output
+      # - It's available to download and inspect from the GitHub Actions UI
       - name: Upload SBOM
         if: always()
         uses: actions/upload-artifact@v7
@@ -97,12 +97,11 @@ jobs:
 
       - name: DAST - Build and run containerised app
         run: |
-          cd apiTest
-          docker compose -f docker-compose.yml up -d
+          docker compose up -d
 
           echo "Waiting for health endpoint..."
           for i in {1..30}; do
-            if curl -s http://localhost:8082/health > /dev/null; then
+            if curl -sf http://localhost:4550/actuator/health > /dev/null; then
               echo "App is healthy"
               break
             fi
@@ -113,7 +112,7 @@ jobs:
       - name: Run OWASP ZAP DAST Scan
         uses: zaproxy/action-baseline@v0.15.0
         with:
-          target: "http://localhost:8082"
+          target: "http://localhost:4550"
           cmd_options: "-a -J zap_report.json -r zap_report.html"
 
       - name: Upload ZAP HTML Report
