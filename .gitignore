@@ -2,7 +2,6 @@ bin/*
 !bin/run-in-docker.sh
 .gradle
 /build/
-/gradlew.bat
 *.class
 bin/main/application.yaml
 
