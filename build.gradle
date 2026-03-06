@@ -27,7 +27,7 @@ apply {
 }
 
 dependencies {
-  implementation "uk.gov.hmcts.cp:api-cp-crime-prosecution-case-details:1.0.0"
+  implementation "uk.gov.hmcts.cp:api-cp-crime-prosecution-case-details:1.0.1"
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
 }
