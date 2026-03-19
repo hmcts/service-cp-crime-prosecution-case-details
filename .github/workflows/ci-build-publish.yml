@@ -99,6 +99,15 @@ jobs:
           name: app.jar
           path: build/libs/${{ steps.repo_vars.outputs.artefact_name }}.jar
 
+      - name: Upload test reports
+        if: always()
+        uses: ./.github/actions/upload-test-reports
+        with:
+          artifact_name: api-test-main-reports
+          path: |
+            apiTest/build/reports/tests/test/
+            apiTest/build/test-results/test/     
+
   Provider-Deploy:
     needs: [ Artefact-Version, Build ]
     runs-on: ubuntu-latest
