@@ -9,6 +9,12 @@ on:
         required: true
       HMCTS_ADO_PAT:
         required: true
+      DEPLOYMENT_APP_ID:
+        required: true
+        description: "GitHub App ID for deployment"
+      DEPLOYMENT_APP_PRIVATE_KEY:
+        required: true
+        description: "GitHub App private key for deployment"
     inputs:
       environment:
         required: true
@@ -31,6 +37,10 @@ on:
         required: false
         type: boolean
         default: false
+      deploy_environment:
+        required: false
+        type: string
+        default: dev
 
 
 jobs:
@@ -198,12 +208,15 @@ jobs:
     needs: [ Provider-Deploy, Build, Artefact-Version ]
     if: ${{ inputs.trigger_deploy }}
     runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
       - name: Extract repo name
         run: echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
-      - name: Trigger ADO pipeline
-        uses: hmcts/trigger-ado-pipeline@v1
+      - name: Trigger ADO pipeline 460
+        id: trigger
+        uses: hmcts/trigger-ado-pipeline@v2
         with:
           pipeline_id: 460
           ado_pat: ${{ secrets.HMCTS_ADO_PAT }}
@@ -215,4 +228,51 @@ jobs:
               "TARGET_REPOSITORY": "${{ github.repository }}",
               "agentDemand": "ubuntu-j25",
               "baseImage": "hmcts/apm-services:25-jre"
+            }
+
+  Wait-For-ACR-Push:
+    needs: [Deploy]
+    if: ${{ inputs.trigger_deploy }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for ADO pipeline 460
+        uses: hmcts/monitor-ado-pipeline@v1
+        with:
+          pipeline_id: 460
+          run_id: ${{ needs.Deploy.outputs.run_id }}
+          ado_pat: ${{ secrets.HMCTS_ADO_PAT }}
+          poll_interval: 30
+          timeout: 1800
+
+  deploy-dev:
+    needs: [Wait-For-ACR-Push, Artefact-Version, Build]
+    if: ${{ inputs.trigger_deploy }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate date suffix
+        id: date
+        shell: bash
+        run: echo "suffix=_$(date -u +'%d%m%y')" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy via ADO pipeline
+        uses: hmcts/action-ado-deploy@v1
+        with:
+          service_name: ${{ needs.Build.outputs.repo_name }}
+          image_tag: ${{ needs.Artefact-Version.outputs.artefact_version }}
+          tag_suffix: ${{ steps.date.outputs.suffix }}
+          app_id: ${{ secrets.DEPLOYMENT_APP_ID }}
+          app_private_key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+          target_repository: hmcts/cp-vp-aks-deploy
+          target_branch: env/dev
+          values_file: vp-config/services_values.yml
+          pipeline_id: 434
+          ado_pat: ${{ secrets.HMCTS_ADO_PAT }}
+          ref_name: refs/heads/env/dev
+          wait: false
+          template_parameters: >
+            {
+              "env": "dev",
+              "cpbackendenv": "steccm64",
+              "stack": "devamp01",
+              "cluster": "K8-DEV-CS01-CL02"
             }
