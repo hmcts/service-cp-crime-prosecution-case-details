@@ -14,8 +14,6 @@ group = 'uk.gov.hmcts.cp'
 version = System.getProperty('ARTEFACT_VERSION') ?: '0.0.999'
 
 apply {
-  from("$rootDir/gradle/spring-core.gradle")
-
   from("$rootDir/gradle/repositories.gradle")
   from("$rootDir/gradle/dependency.gradle")
   from("$rootDir/gradle/pmd.gradle")
@@ -43,6 +41,19 @@ dependencies {
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
   testCompileOnly 'org.projectlombok:lombok:1.18.42'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
+
+
+  // Spring boot core
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-aspectj"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-validation"
+
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.1.0'
+  testImplementation 'org.wiremock:wiremock-standalone:3.13.2'
 
 
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
