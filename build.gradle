@@ -14,9 +14,6 @@ group = 'uk.gov.hmcts.cp'
 version = System.getProperty('ARTEFACT_VERSION') ?: '0.0.999'
 
 apply {
-  from("$rootDir/gradle/java-core.gradle")
-  from("$rootDir/gradle/spring-core.gradle")
-
   from("$rootDir/gradle/repositories.gradle")
   from("$rootDir/gradle/dependency.gradle")
   from("$rootDir/gradle/pmd.gradle")
@@ -26,8 +23,39 @@ apply {
   from("$rootDir/gradle/apitest.gradle")
 }
 
+// We MUST keep all dependencies in the build.gradle to allow dependabot to provide version updates
+// Sadly, dependabot does not track dependencies in the apply-from files
 dependencies {
+  // Api spec
   implementation "uk.gov.hmcts.cp:api-cp-crime-prosecution-case-details:1.0.1"
+
+
+  // Java core
+  implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
+  implementation 'org.apache.logging.log4j:log4j-to-slf4j'
+  implementation 'ch.qos.logback:logback-classic'
+  implementation 'ch.qos.logback:logback-core'
+  implementation "org.owasp.encoder:encoder:1.2.3"
+
+  compileOnly 'org.projectlombok:lombok:1.18.42'
+  annotationProcessor 'org.projectlombok:lombok:1.18.42'
+  testCompileOnly 'org.projectlombok:lombok:1.18.42'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
+
+
+  // Spring boot core
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-aspectj"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-validation"
+
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.1.0'
+  testImplementation 'org.wiremock:wiremock-standalone:3.13.2'
+
+
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
 }
