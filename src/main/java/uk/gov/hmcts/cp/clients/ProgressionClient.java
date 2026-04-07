@@ -42,7 +42,7 @@ public class ProgressionClient {
 
     private HttpEntity<String> getRequestEntity() {
         final HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept", "application/vnd.listing.search.hearings+json");
+        headers.add("Accept", "application/vnd.progression.query.prosecutioncase+json");
         headers.add("CJSCPPUID", appProperties.getProgressionCjscppuid());
         return new HttpEntity<>(headers);
     }

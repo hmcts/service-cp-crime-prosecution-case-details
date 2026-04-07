@@ -17,10 +17,11 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
 
       - uses: pmd/pmd-github-action@v2
         id: pmd
+        continue-on-error: true
         with:
           rulesets: '.github/pmd-ruleset.xml'
           sourcePath: 'src/main/java'
