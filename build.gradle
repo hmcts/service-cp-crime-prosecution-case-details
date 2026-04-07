@@ -1,13 +1,13 @@
 plugins {
   id 'application'
   id 'java'
-  id 'org.springframework.boot' version '4.0.1'
+  id 'org.springframework.boot' version '4.0.5'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'jacoco'
   id 'maven-publish'
   id 'com.github.ben-manes.versions' version '0.53.0'
-  id "org.cyclonedx.bom" version "3.1.0"
-  id 'com.avast.gradle.docker-compose' version '0.17.20'
+  id "org.cyclonedx.bom" version "3.2.3"
+  id 'com.avast.gradle.docker-compose' version '0.17.21'
 }
 
 group = 'uk.gov.hmcts.cp'
@@ -31,16 +31,16 @@ dependencies {
 
 
   // Java core
-  implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
+  implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
   implementation 'org.apache.logging.log4j:log4j-to-slf4j'
   implementation 'ch.qos.logback:logback-classic'
   implementation 'ch.qos.logback:logback-core'
-  implementation "org.owasp.encoder:encoder:1.2.3"
+  implementation "org.owasp.encoder:encoder:1.4.0"
 
-  compileOnly 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.projectlombok:lombok:1.18.42'
-  testCompileOnly 'org.projectlombok:lombok:1.18.42'
-  testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
+  compileOnly 'org.projectlombok:lombok:1.18.44'
+  annotationProcessor 'org.projectlombok:lombok:1.18.44'
+  testCompileOnly 'org.projectlombok:lombok:1.18.44'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.44'
 
 
   // Spring boot core
@@ -52,7 +52,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 
-  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.1.0'
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.1'
   testImplementation 'org.wiremock:wiremock-standalone:3.13.2'
 
 
