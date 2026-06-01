@@ -20,4 +20,6 @@ jobs:
       is_publish: true
       trigger_docker: true
       trigger_deploy: true
+      deploy_dev: false
+      deploy_sit: true
       deploy_environment: dev
