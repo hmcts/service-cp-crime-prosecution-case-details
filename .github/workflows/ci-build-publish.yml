@@ -279,7 +279,7 @@ jobs:
           wait: false
           template_parameters: >
             {
-              "env": "dev",
+              "env": "ste",
               "cpbackendenv": "steccm14",
               "stack": "steamp01",
               "cluster": "K8-STE-CS01-CL01"
