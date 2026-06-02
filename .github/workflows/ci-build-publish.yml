@@ -281,8 +281,8 @@ jobs:
             {
               "env": "dev",
               "cpbackendenv": "steccm14",
-              "stack": "devamp01",
-              "cluster": "K8-DEV-CS01-CL02"
+              "stack": "steamp01",
+              "cluster": "K8-STE-CS01-CL01"
             }
 
   deploy-sit:
