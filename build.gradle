@@ -21,6 +21,7 @@ apply {
   from("$rootDir/gradle/jar.gradle")
 
   from("$rootDir/gradle/apitest.gradle")
+  from("$rootDir/gradle/smoketest.gradle")
 }
 
 // We MUST keep all dependencies in the build.gradle to allow dependabot to provide version updates
