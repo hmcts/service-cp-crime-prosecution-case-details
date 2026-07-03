@@ -13,8 +13,14 @@ pool:
 
 steps:
   - script: |
-      echo "=== Private CP backend (expect REACHABLE from here) ==="
-      curl -v -m 10 https://steccm64.ingress01.dev.nl.cjscp.org.uk/stagingprosecutorsspi-service/CJSEService || echo "RESULT: UNREACHABLE"
+      echo "=== Private CP backend - DNS resolution ==="
+      # steccm14/.ste.nl matches this repo's actual deploy-dev target (cpbackendenv: steccm14,
+      # cluster: K8-STE-CS01-CL01) - steccm64/.dev.nl (tried in the first POC run) is stale
+      # naming per earlier confirmation and may never have existed in this DNS zone at all.
+      getent hosts steccm14.ingress01.ste.nl.cjscp.org.uk || echo "RESULT: DNS RESOLUTION FAILED"
+      echo ""
+      echo "=== Private CP backend - connectivity (expect REACHABLE from here) ==="
+      curl -v -m 10 https://steccm14.ingress01.ste.nl.cjscp.org.uk/stagingprosecutorsspi-service/CJSEService || echo "RESULT: UNREACHABLE"
       echo ""
       echo "=== Public APIM/WAF gateway (expect REACHABLE from here) ==="
       curl -v -m 10 https://amp.dev.cjscp.org.uk/ || echo "RESULT: UNREACHABLE"
