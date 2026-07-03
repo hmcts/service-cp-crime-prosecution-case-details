@@ -1,0 +1,21 @@
+# Throwaway POC - validates the reachability claims in
+# docs/superpowers/specs/2026-07-02-smoke-testing-framework-design.md §6a from a real internal
+# build agent. Manual run only (trigger/pr disabled, matching pipeline 340's own convention) -
+# safe to delete this file and the ADO pipeline pointing at it once the POC is recorded.
+
+trigger: none
+pr: none
+
+pool:
+  name: "MDV-ADO-AGENT-AKS-01"   # confirm this matches pipeline 340's actual pool/demand exactly
+  demands:
+    - "identifier -equals centos8-j17-ste"
+
+steps:
+  - script: |
+      echo "=== Private CP backend (expect REACHABLE from here) ==="
+      curl -v -m 10 https://steccm64.ingress01.dev.nl.cjscp.org.uk/stagingprosecutorsspi-service/CJSEService || echo "RESULT: UNREACHABLE"
+      echo ""
+      echo "=== Public APIM/WAF gateway (expect REACHABLE from here) ==="
+      curl -v -m 10 https://amp.dev.cjscp.org.uk/ || echo "RESULT: UNREACHABLE"
+    displayName: "POC: network reachability check"
