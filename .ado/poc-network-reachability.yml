@@ -2,25 +2,33 @@
 # docs/superpowers/specs/2026-07-02-smoke-testing-framework-design.md §6a from a real internal
 # build agent. Manual run only (trigger/pr disabled, matching pipeline 340's own convention) -
 # safe to delete this file and the ADO pipeline pointing at it once the POC is recorded.
+#
+# devops guidance 2026-07-03: steccm64/.dev.nl DNS resolution failed because agent pools are
+# paired to a specific cluster (confirmed finding: this pool reached steccm14 on K8-STE-CS01-CL01
+# but not steccm64 on K8-DEV-CS01-CL02). Rather than chasing a DNS fix, target cluster
+# K8-DEV-CS01-CL02 directly - same approach pipeline 340 (cpp-apitests) exposes via its `cluster`
+# run parameter.
 
 trigger: none
 pr: none
 
 pool:
-  name: "MDV-ADO-AGENT-AKS-01"   # confirm this matches pipeline 340's actual pool/demand exactly
+  name: "MDV-ADO-AGENT-AKS-01"
   demands:
-    - "identifier -equals centos8-j17-ste"
+    # centos8-j17 (no suffix) confirmed by devops as the demand for K8-DEV-CS01-CL02 - the
+    # "-ste" suffix used previously was specific to K8-STE-CS01-CL01.
+    - "identifier -equals centos8-j17"
 
 steps:
   - script: |
       echo "=== Private CP backend - DNS resolution ==="
-      # steccm14/.ste.nl matches this repo's actual deploy-dev target (cpbackendenv: steccm14,
-      # cluster: K8-STE-CS01-CL01) - steccm64/.dev.nl (tried in the first POC run) is stale
-      # naming per earlier confirmation and may never have existed in this DNS zone at all.
-      getent hosts steccm14.ingress01.ste.nl.cjscp.org.uk || echo "RESULT: DNS RESOLUTION FAILED"
+      # steccm64/.dev.nl lives on cluster K8-DEV-CS01-CL02 - reverting to it now that the agent
+      # pool above is being targeted at that cluster (per devops guidance), rather than steccm14
+      # on K8-STE-CS01-CL01 used in the previous POC run.
+      getent hosts steccm64.ingress01.dev.nl.cjscp.org.uk || echo "RESULT: DNS RESOLUTION FAILED"
       echo ""
       echo "=== Private CP backend - connectivity (expect REACHABLE from here) ==="
-      curl -v -m 10 https://steccm14.ingress01.ste.nl.cjscp.org.uk/stagingprosecutorsspi-service/CJSEService || echo "RESULT: UNREACHABLE"
+      curl -v -m 10 https://steccm64.ingress01.dev.nl.cjscp.org.uk/stagingprosecutorsspi-service/CJSEService || echo "RESULT: UNREACHABLE"
       echo ""
       echo "=== Public APIM/WAF gateway (expect REACHABLE from here) ==="
       curl -v -m 10 https://amp.dev.cjscp.org.uk/ || echo "RESULT: UNREACHABLE"
