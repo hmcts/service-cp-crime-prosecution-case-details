@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Repo: service-cp-crime-prosecution-case-details
 
 Spring Boot service that aggregates prosecution case details by calling two CP backends — a URN-to-case-ID mapper and a prosecution progression API — then maps the combined response to the API contract.
@@ -65,6 +69,45 @@ uk.gov.hmcts.cp/
 | 404 on valid URN | URN not found in mapper backend; check `CP_BACKEND_URL` and that case exists in backend |
 | 502 on case details | `ProgressionClient` cannot reach `AMP_BACKEND_URL`; check connectivity and env var |
 | Empty response body | Check `CaseDetailMapper` — null fields are excluded by `@JsonInclude(NON_NULL)` |
+
+## Smoke Testing
+
+`src/smokeTest` (Gradle source set, `./gradlew smokeTest`) verifies `getCaseDetailsByCaseUrn`
+against a real deployed instance. Not part of `build`/`check` — invoked explicitly. Design
+rationale: `docs/superpowers/specs/2026-07-02-smoke-testing-framework-design.md` (note: written
+before the WAF/Entra pivot below — the code is the source of truth for current behaviour).
+
+```
+uk.gov.hmcts.cp.smoketest/
+  config/
+    SmokeTestConfig               Standalone @Configuration + @ComponentScan — deliberately
+                                   not Application.class; never boots controllers/web server
+    SmokeTestProperties           @Value-injected from application.yaml's smoke: block
+  clients/
+    SpiInDataFixtureClient        Creates the prerequisite case via SPI-IN against the raw CP
+                                   backend ingress (progression-client.url); CJSCPPUID auth
+    CaseDetailsSmokeClient        Calls this service's own contract through the Azure APIM/WAF
+                                   gateway (smoke.service-base-url); Entra bearer token +
+                                   Ocp-Apim-Subscription-Key auth — doubles as the data-
+                                   readiness poll, no separate backend polling needed
+    EntraTokenClient               Entra ID client-credentials grant; fetched fresh per call
+  fixtures/SpiInMessageBuilder    Owned copy of the minimal SPI-IN SOAP template; no
+                                   cpp-apitests dependency
+  evidence/EvidenceRecorder      Writes request/response/timestamps to build/smoke-evidence/
+```
+
+- **Two distinct auth paths — don't conflate them.** SPI-IN data-prep and the actual
+  `getCaseDetailsByCaseUrn` read go through completely different gateways with different
+  identity mechanisms (see the tree above). Adding `CJSCPPUID` to `CaseDetailsSmokeClient` or
+  Entra/subscription headers to `SpiInDataFixtureClient` is wrong for both.
+- Required env vars are documented as commented placeholders in `.envrc` — never put real
+  credentials there (it's committed to git). Use a local gitignored `.env` (`.envrc` already
+  sources it via `dotenv`) for manual runs; Vault for CI (mount path TBC with platform team).
+- `SMOKE_INSECURE_TLS=true` is needed only for raw `steccm*`/`steamp*`/`devamp*` ingress hosts
+  (self-signed/internal certs). The WAF (`amp.dev.cjscp.org.uk`) has a real CA-signed cert.
+- Known open item: `GET /cases/{urn}` via the WAF currently 404s at the APIM routing layer —
+  this repo has never been onboarded via `apim-gateway-configure.yml`, so the registered
+  `apim_path` (or whether onboarding has happened at all) needs confirming.
 
 ## Repo-Specific Notes
 

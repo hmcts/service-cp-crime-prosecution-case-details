@@ -27,6 +27,10 @@ azure:
   application-insights:
     instrumentation-key: ${rpe.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
+# Single source of truth for the CJSCPPUID identity header - referenced below rather than
+# repeating ${CJSCPPUID:...} in every client block that needs it.
+cjscppuid: ${CJSCPPUID:00000000-0000-0000-0000-000000000000}
+
 case-mapper-client:
   url: ${AMP_BACKEND_URL:http://localhost:8081}
   path: /urnmapper
@@ -34,4 +38,24 @@ case-mapper-client:
 progression-client:
   url: ${CP_BACKEND_URL:http://localhost:8081}
   path: /progression-query-api/query/api/rest/progression/prosecutioncases
-  cjscppuid: ${CJSCPPUID:00000000-0000-0000-0000-000000000000}
+  cjscppuid: ${cjscppuid}
+
+# Consumed only by src/smokeTest's SmokeTestProperties (./gradlew smokeTest) - nothing in
+# main reads these. Kept here rather than a second application.yaml to avoid a classpath
+# collision between two same-named files across source sets. Only genuinely smoke-test-only
+# config lives here - the SPI-IN backend host and CJSCPPUID identity are the same ones the
+# CP backend client above already resolves, so SmokeTestProperties reads those directly
+# instead of routing them through a same-value smoke.* alias.
+smoke:
+  service-base-url: ${SMOKE_SERVICE_BASE_URL:http://localhost:8081}
+  poll-timeout-seconds: ${SMOKE_POLL_TIMEOUT_SECONDS:120}
+  poll-interval-millis: ${SMOKE_POLL_INTERVAL_MILLIS:5000}
+  insecure-tls: ${SMOKE_INSECURE_TLS:false}
+  # Entra ID (Azure AD) client-credentials + APIM subscription key, used only when
+  # service-base-url points at the Azure APIM/WAF gateway rather than a raw K8s ingress.
+  # No defaults beyond empty string - these are credentials, never hardcoded here.
+  entra-tenant-id: ${SMOKE_ENTRA_TENANT_ID:}
+  entra-client-id: ${SMOKE_ENTRA_CLIENT_ID:}
+  entra-client-secret: ${SMOKE_ENTRA_CLIENT_SECRET:}
+  entra-scope: ${SMOKE_ENTRA_SCOPE:}
+  apim-subscription-key: ${SMOKE_APIM_SUBSCRIPTION_KEY:}
