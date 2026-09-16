@@ -23,6 +23,15 @@ apply {
   from("$rootDir/gradle/apitest.gradle")
 }
 
+springBoot {
+  buildInfo {
+    properties {
+      name = project.name
+      version = project.version.toString()
+    }
+  }
+}
+
 // We MUST keep all dependencies in the build.gradle to allow dependabot to provide version updates
 // Sadly, dependabot does not track dependencies in the apply-from files
 dependencies {
@@ -58,4 +67,8 @@ dependencies {
 
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+  // Scrapeable registry for the /actuator/prometheus endpoint already in the exposure list
+  implementation 'io.micrometer:micrometer-registry-prometheus'
+  // Entra access token validation
+  implementation 'com.nimbusds:nimbus-jose-jwt:10.5'
 }

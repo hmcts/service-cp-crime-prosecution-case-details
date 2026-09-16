@@ -17,6 +17,8 @@ import java.nio.file.Path;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static uk.gov.hmcts.cp.security.TestTokens.validBearer;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -65,7 +67,8 @@ class CaseDetailControllerIntegrationTest extends IntegrationTestBase {
 
 
         mockMvc.perform(get("/cases/{case_urn}", caseUrn)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, validBearer()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -82,7 +85,8 @@ class CaseDetailControllerIntegrationTest extends IntegrationTestBase {
         stubFor(WireMock.get(urlEqualTo(expectedProgressionUrl)).willReturn(mockResponse));
 
         mockMvc.perform(get("/cases/{case_urn}", caseUrn)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, validBearer()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -100,7 +104,8 @@ class CaseDetailControllerIntegrationTest extends IntegrationTestBase {
         stubFor(WireMock.get(urlEqualTo(expectedProgressionUrl)).willReturn(mockResponse));
 
         mockMvc.perform(get("/cases/{case_urn}", caseUrn)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, validBearer()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -119,7 +124,8 @@ class CaseDetailControllerIntegrationTest extends IntegrationTestBase {
         stubFor(WireMock.get(urlEqualTo(expectedProgressionUrlWithMissingCaseUrn)).willReturn(mockResponse));
 
         mockMvc.perform(get("/cases/{case_urn}", caseUrn)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, validBearer()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -135,7 +141,8 @@ class CaseDetailControllerIntegrationTest extends IntegrationTestBase {
     @SneakyThrows
     private void amp_endpoint_and_verify_response(String expectedResponse) {
         mockMvc.perform(get("/cases/{case_urn}", caseUrn)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION, validBearer()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedResponse))

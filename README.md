@@ -2,6 +2,8 @@
 
 ## Documentation
 
+- [Authentication](docs/Authentication.md) - Entra access token validation, configuration and Entra prerequisites
+
 Further documentation see the [HMCTS Marketplace Springboot template readme](https://github.com/hmcts/service-hmcts-marketplace-springboot-template/blob/main/README.md).
 
 And supporting documents [HMCTS Marketplace Springboot docs](https://github.com/hmcts/service-hmcts-marketplace-springboot-template/blob/main/docs).

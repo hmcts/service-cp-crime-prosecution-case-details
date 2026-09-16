@@ -8,8 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import uk.gov.hmcts.cp.security.TestJwksConfig;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -20,11 +23,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+// Captures System.out and asserts on the exact log lines one request emits, so it needs a context
+// of its own rather than sharing IntegrationTestBase's.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, properties = {
-        "jwt.filter.enabled=false",
-        "management.tracing.enabled=true"
+        "management.tracing.enabled=true",
+        "auth.mode=ENFORCE",
+        "auth.tenant-id=11111111-1111-1111-1111-111111111111",
+        "auth.audience=22222222-2222-2222-2222-222222222222",
+        "auth.roles=app.read"
 })
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Import(TestJwksConfig.class)
 class TracingIntegrationTest {
 
     private static final String TRACE_ID_HEADER = "traceId";
