@@ -15,6 +15,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.owasp.encoder.Encode;
 import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.cp.config.AuthProperties;
@@ -90,10 +91,9 @@ public class EntraAuthenticationFilter extends OncePerRequestFilter {
                                  final HttpServletResponse response,
                                  final FilterChain filterChain,
                                  final TokenRejectionReason reason) throws ServletException, IOException {
-        final String method = sanitizeForLog(request.getMethod());
-        final String path = sanitizeForLog(request.getRequestURI());
+        // Method and path come from the request, so they are encoded before they reach the log.
         log.warn("Token validation failed: reason={} method={} path={}",
-            reason, method, path);
+            reason, Encode.forJava(request.getMethod()), Encode.forJava(request.getRequestURI()));
         if (authProperties.getMode() == AuthMode.OBSERVE) {
             counter(OBSERVED_METRIC, reason).increment();
             MDC.put(CLIENT_VERIFIED, String.valueOf(tokenValidator.unverifiedIdentity().verified()));
@@ -123,15 +123,5 @@ public class EntraAuthenticationFilter extends OncePerRequestFilter {
 
     private Counter counter(final String name, final TokenRejectionReason reason) {
         return Counter.builder(name).tag(REASON_TAG, reason.name()).register(meterRegistry);
-    }
-
-    private String sanitizeForLog(final String value) {
-        if (value == null) {
-            return null;
-        }
-        return value
-            .replace('\r', '_')
-            .replace('\n', '_')
-            .replaceAll("\\p{Cntrl}", "_");
     }
 }
