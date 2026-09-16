@@ -16,5 +16,8 @@ services:
       dockerfile: Dockerfile
     environment:
       CP_BACKEND_URL: "http://wiremock:8080"
+      # API tests run against this container; the local profile is what permits AUTH_MODE=OFF
+      SPRING_PROFILES_ACTIVE: "local"
+      AUTH_MODE: "OFF"
     ports:
       - "4550:4550"
