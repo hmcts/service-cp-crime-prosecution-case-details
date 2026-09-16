@@ -23,6 +23,15 @@ spring:
     resources:
       add-mappings: false     # disable serving any static resources and 404 message
 
+# Entra app-only access token validation; OFF/OBSERVE are rejected at startup outside local and test
+auth:
+  mode: ${AUTH_MODE:ENFORCE}
+  tenant-id: ${AUTH_TENANT_ID:}
+  audience: ${AUTH_AUDIENCE:}
+  roles: ${AUTH_ROLES:}
+  clock-skew-seconds: ${AUTH_CLOCK_SKEW_SECONDS:60}
+  jwks-cache-ttl-seconds: ${AUTH_JWKS_CACHE_TTL_SECONDS:3600}
+
 azure:
   application-insights:
     instrumentation-key: ${rpe.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
