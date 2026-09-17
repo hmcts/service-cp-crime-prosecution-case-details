@@ -70,5 +70,5 @@ dependencies {
   // Scrapeable registry for the /actuator/prometheus endpoint already in the exposure list
   implementation 'io.micrometer:micrometer-registry-prometheus'
   // Entra access token validation
-  implementation 'com.nimbusds:nimbus-jose-jwt:10.5'
+  implementation 'com.nimbusds:nimbus-jose-jwt:10.9.1'
 }
