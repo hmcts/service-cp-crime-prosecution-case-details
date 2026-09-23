@@ -315,6 +315,33 @@ jobs:
               "cluster": "K8-DEV-CS01-CL01"
             }
 
+      # dev's services_values.yml also carries a second entry for this same
+      # image, service-cp-crime-prosecution-case-details-cnp (serves /pcd) -
+      # the step above only updates the plain-named entry (serves /cases/).
+      # Deploy both so /pcd doesn't stay stuck on the last tag it was
+      # manually given.
+      - name: Deploy CNP (/pcd) pod via ADO pipeline
+        uses: hmcts/action-ado-deploy@v1
+        with:
+          service_name: ${{ needs.Build.outputs.repo_name }}-cnp
+          image_tag: ${{ needs.Wait-For-ACR-Push.outputs.real_tag }}
+          app_id: ${{ secrets.DEPLOYMENT_APP_ID }}
+          app_private_key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+          target_repository: hmcts/cp-vp-aks-deploy
+          target_branch: env/dev
+          values_file: vp-config/services_values.yml
+          pipeline_id: 434
+          ado_pat: ${{ secrets.HMCTS_ADO_PAT }}
+          ref_name: refs/heads/env/dev
+          wait: false
+          template_parameters: >
+            {
+              "env": "dev",
+              "cpbackendenv": "steccm64",
+              "stack": "devamp01",
+              "cluster": "K8-DEV-CS01-CL01"
+            }
+
   deploy-sit:
     needs: [Wait-For-ACR-Push, Artefact-Version, Build]
     if: ${{ inputs.trigger_deploy && inputs.deploy_sit }}
