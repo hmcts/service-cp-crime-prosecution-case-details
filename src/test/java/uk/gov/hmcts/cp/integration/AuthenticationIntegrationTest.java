@@ -104,6 +104,7 @@ class AuthenticationIntegrationTest extends IntegrationTestBase {
     void exempt_endpoints_answer_without_a_token() throws Exception {
         mockMvc.perform(get("/")).andExpect(status().isOk());
         mockMvc.perform(get("/actuator/health")).andExpect(status().isOk());
+        mockMvc.perform(get("/actuator/health/")).andExpect(status().isOk());
     }
 
     @Test
