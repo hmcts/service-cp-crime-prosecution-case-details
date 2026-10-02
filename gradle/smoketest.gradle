@@ -1,0 +1,37 @@
+// Smoke tests hit a real deployed environment (SMOKE_SERVICE_BASE_URL / SMOKE_BACKEND_BASE_URL /
+// SMOKE_SPI_SYSTEM_USER_ID env vars) - never run as part of build/check/CI unit test flow.
+// Invoke explicitly: ./gradlew smokeTest
+tasks.register('smokeTest', Test) {
+  description = "Runs smoke tests against a real deployed environment (not part of build/check)"
+  group = "Verification"
+
+  testClassesDirs = sourceSets.smokeTest.output.classesDirs
+  classpath = sourceSets.smokeTest.runtimeClasspath
+  useJUnitPlatform()
+
+  testLogging {
+    events "passed", "skipped", "failed"
+    exceptionFormat = 'full'
+    showStandardStreams = true
+  }
+  reports {
+    junitXml.required.set(true)
+    html.required.set(true)
+  }
+}
+
+sourceSets {
+  smokeTest {
+    java {
+      compileClasspath += sourceSets.main.output
+      runtimeClasspath += sourceSets.main.output
+    }
+  }
+}
+
+configurations {
+  smokeTestImplementation.extendsFrom testImplementation
+  smokeTestRuntimeOnly.extendsFrom testRuntimeOnly
+  smokeTestCompileOnly.extendsFrom testCompileOnly
+  smokeTestAnnotationProcessor.extendsFrom testAnnotationProcessor
+}
