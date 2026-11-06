@@ -42,6 +42,8 @@ class ActuatorEndpointsIntegrationTest extends IntegrationTestBase {
             .andReturn().getResponse().getContentAsString();
 
         assertThat(scrape)
+            .contains("auth_token_validation_success_total")
+            .contains("issuer=\"primary\"")
             .contains("auth_token_validation_failure_total")
             .contains("MISSING_AUTHORIZATION_HEADER");
     }

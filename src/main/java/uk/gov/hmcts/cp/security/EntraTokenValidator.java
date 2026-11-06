@@ -19,8 +19,14 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+/**
+ * The token's {@code iss} picks one {@link TrustedIssuer} (primary or CP); the signature, audience,
+ * issuer and tenant are then checked against that issuer only.
+ */
 @Component
 public class EntraTokenValidator {
 
@@ -35,29 +41,42 @@ public class EntraTokenValidator {
     private static final Pattern UUID_PATTERN =
         Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
-    private final DefaultJWTProcessor<SecurityContext> jwtProcessor;
+    /** One signature processor per trusted issuer, keyed by exact {@code iss}. */
+    private final Map<String, IssuerVerifier> verifiersByIssuer;
     private final AuthProperties authProperties;
 
-    public EntraTokenValidator(final JWKSource<SecurityContext> jwkSource, final AuthProperties authProperties) {
+    private record IssuerVerifier(TrustedIssuer trusted, DefaultJWTProcessor<SecurityContext> processor) { }
+
+    public EntraTokenValidator(final JwkSourceFactory jwkSources, final AuthProperties authProperties) {
         this.authProperties = authProperties;
-        this.jwtProcessor = new DefaultJWTProcessor<>();
+        this.verifiersByIssuer = authProperties.getTrustedIssuers().stream()
+            .collect(Collectors.toUnmodifiableMap(TrustedIssuer::issuer, trusted -> new IssuerVerifier(
+                trusted, buildProcessor(jwkSources.forJwksUri(trusted.jwksUri())))));
+    }
+
+    private static DefaultJWTProcessor<SecurityContext> buildProcessor(final JWKSource<SecurityContext> jwkSource) {
+        final DefaultJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
         // RS256 is pinned here rather than read from the token header: Entra's JWKS entries carry no
         // "alg", so the header is the only other source and it is attacker-supplied.
-        this.jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, jwkSource));
-        this.jwtProcessor.setJWTClaimsSetVerifier((claims, context) -> { });
+        jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, jwkSource));
+        jwtProcessor.setJWTClaimsSetVerifier((claims, context) -> { });
+        return jwtProcessor;
     }
 
     public CallerIdentity validate(final String authorizationHeader) throws TokenValidationException {
-        final JWTClaimsSet claims = parseAndVerifySignature(extractBearerToken(authorizationHeader));
-        verifyAudience(claims);
-        verifyIssuerAndTenant(claims);
+        final SignedJWT signedJwt = parseSigned(extractBearerToken(authorizationHeader));
+        final IssuerVerifier selected = selectByIssuer(signedJwt);
+        final TrustedIssuer trusted = selected.trusted();
+        final JWTClaimsSet claims = verifySignature(selected.processor(), signedJwt);
+        verifyAudience(claims, trusted);
+        verifyIssuerAndTenant(claims, trusted);
         verifyValidityWindow(claims);
         verifyAppOnly(claims);
-        return new CallerIdentity(verifyClientId(claims), true);
+        return new CallerIdentity(verifyClientId(claims), true, trusted.name());
     }
 
     public CallerIdentity unverifiedIdentity() {
-        return new CallerIdentity(null, false);
+        return new CallerIdentity(null, false, CallerIdentity.UNVERIFIED_ISSUER);
     }
 
     private static String extractBearerToken(final String authorizationHeader) throws TokenValidationException {
@@ -80,13 +99,31 @@ public class EntraTokenValidator {
         return token;
     }
 
-    private JWTClaimsSet parseAndVerifySignature(final String token) throws TokenValidationException {
+    private static SignedJWT parseSigned(final String token) throws TokenValidationException {
         final JWT jwt = parse(token);
         // An unsecured (alg: none) or encrypted token never reaches the verifier at all.
         if (!(jwt instanceof SignedJWT signedJwt)) {
             throw new TokenValidationException(TokenRejectionReason.INVALID_SIGNATURE);
         }
-        return verifySignature(signedJwt);
+        return signedJwt;
+    }
+
+    /**
+     * Reads {@code iss} before signature verification only to choose the issuer, whose keys then
+     * verify the signature.
+     */
+    private IssuerVerifier selectByIssuer(final SignedJWT signedJwt) throws TokenValidationException {
+        final String unverifiedIssuer;
+        try {
+            unverifiedIssuer = signedJwt.getJWTClaimsSet().getIssuer();
+        } catch (ParseException e) {
+            throw new TokenValidationException(TokenRejectionReason.MALFORMED_TOKEN);
+        }
+        final IssuerVerifier selected = unverifiedIssuer == null ? null : verifiersByIssuer.get(unverifiedIssuer);
+        if (selected == null) {
+            throw new TokenValidationException(TokenRejectionReason.INVALID_ISSUER);
+        }
+        return selected;
     }
 
     private static JWT parse(final String token) throws TokenValidationException {
@@ -97,7 +134,8 @@ public class EntraTokenValidator {
         }
     }
 
-    private JWTClaimsSet verifySignature(final SignedJWT signedJwt) throws TokenValidationException {
+    private static JWTClaimsSet verifySignature(final DefaultJWTProcessor<SecurityContext> jwtProcessor,
+                                                final SignedJWT signedJwt) throws TokenValidationException {
         try {
             return jwtProcessor.process(signedJwt, null);
         } catch (BadJWTException e) {
@@ -107,19 +145,21 @@ public class EntraTokenValidator {
         }
     }
 
-    private void verifyAudience(final JWTClaimsSet claims) throws TokenValidationException {
+    private static void verifyAudience(final JWTClaimsSet claims, final TrustedIssuer trusted)
+        throws TokenValidationException {
         final List<String> audience = claims.getAudience();
-        if (audience.size() != 1 || !audience.get(0).equals(authProperties.getAudience())) {
+        if (audience.size() != 1 || !trusted.audiences().contains(audience.get(0))) {
             throw new TokenValidationException(TokenRejectionReason.INVALID_AUDIENCE);
         }
     }
 
-    private void verifyIssuerAndTenant(final JWTClaimsSet claims) throws TokenValidationException {
+    private static void verifyIssuerAndTenant(final JWTClaimsSet claims, final TrustedIssuer trusted)
+        throws TokenValidationException {
         // Exact match only: a prefix or contains match admits ".../v2.0.attacker.example".
-        if (!authProperties.getIssuer().equals(claims.getIssuer())) {
+        if (!trusted.issuer().equals(claims.getIssuer())) {
             throw new TokenValidationException(TokenRejectionReason.INVALID_ISSUER);
         }
-        if (!authProperties.getTenantId().equals(stringClaim(claims, CLAIM_TID))) {
+        if (!trusted.tenantId().equals(stringClaim(claims, CLAIM_TID))) {
             throw new TokenValidationException(TokenRejectionReason.INVALID_TENANT);
         }
         if (!SUPPORTED_TOKEN_VERSION.equals(stringClaim(claims, CLAIM_VER))) {

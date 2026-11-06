@@ -1,8 +1,7 @@
 apply plugin: 'pmd'
 
 pmd {
-  // Match the PMD the code-analysis workflow runs; the Gradle default lags and misses rules
-  toolVersion = "7.27.0"
+  toolVersion = "7.29.0" // same PMD as the CI pmd-github-action
   ruleSets = []
   ruleSetFiles = files(".github/pmd-ruleset.xml")
   ignoreFailures = false

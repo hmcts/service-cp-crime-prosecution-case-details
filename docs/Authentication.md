@@ -10,27 +10,41 @@ never traverse the gateway.
 | Property | Environment variable | Default | Purpose |
 |---|---|---|---|
 | `auth.mode` | `AUTH_MODE` | `ENFORCE` | `OFF`, `OBSERVE` or `ENFORCE`. `OFF`/`OBSERVE` fail startup unless the `local` or `test` profile is active |
-| `auth.tenant-id` | `AUTH_TENANT_ID` | _(none)_ | The token-**issuing** tenant. Derives the issuer and JWKS URI |
-| `auth.audience` | `AUTH_AUDIENCE` | _(none)_ | This API's own audience |
+| `auth.tenant-id` | `AUTH_TENANT_ID` | _(none)_ | The primary token-**issuing** tenant. Derives the issuer and JWKS URI |
+| `auth.audience` | `AUTH_AUDIENCE` | _(none)_ | This API's own audience in the primary tenant |
 | `auth.roles` | `AUTH_ROLES` | _(none)_ | Comma-separated application roles this API accepts (`app.read`) |
 | `auth.issuer` | — | derived from tenant | Override |
 | `auth.jwks-uri` | — | derived from tenant | Override |
+| `auth.cp-tenant-id` | `AUTH_CP_TENANT_ID` | _(none — CP tokens rejected)_ | CP issuing tenant |
+| `auth.cp-audience` | `AUTH_CP_AUDIENCE` | _(none — CP tokens rejected)_ | This API's own audience in the CP tenant |
+| `auth.cp-issuer` | `AUTH_CP_ISSUER` | derived from CP tenant | Override |
+| `auth.cp-jwks-uri` | `AUTH_CP_JWKS_URI` | derived from CP tenant | Override |
 | `auth.clock-skew-seconds` | `AUTH_CLOCK_SKEW_SECONDS` | `60` | Applied to `exp`/`nbf`; capped at 300 |
 | `auth.jwks-cache-ttl-seconds` | `AUTH_JWKS_CACHE_TTL_SECONDS` | `3600` | JWKS cache lifetime |
 
 Startup fails when the mode is enforcing and the tenant, audience or roles are blank. A blank
 audience never means "accept any audience".
 
+### Two issuers: primary and CP on one pod
+
+The pod trusts the primary issuer (`auth.*`, required) and, while CP consumers remain, CP
+(`auth.cp-*`, optional; AMP-1384, retired by AMP-1385).
+
+- The token's `iss` picks one issuer by exact match; the token is validated against that issuer's
+  tenant, audience and JWKS only. Unknown or missing `iss` is rejected (`INVALID_ISSUER`).
+- The CP tenant and audience are set together or not at all; otherwise startup fails, in every mode.
+- `auth.token.validation.success` is tagged `issuer=primary|cp`. Remove `AUTH_CP_*` to stop accepting CP tokens.
+
 ## Claims validated
 
 | Claim | Requirement |
 |---|---|
-| Signature | RS256 only, against the tenant JWKS. The algorithm is pinned in configuration, never read from the token header |
-| `aud` | Single-valued and equal to `auth.audience` |
-| `iss` | Exact string match against the configured issuer |
+| Signature | RS256 only, against the JWKS of the issuer named by `iss`. The algorithm is pinned in configuration, never read from the token header |
+| `aud` | Single-valued and equal to that issuer's audience |
+| `iss` | Exact string match against a configured issuer |
 | `exp` | Required, and in the future within the configured skew |
 | `nbf` | Checked when present, same skew |
-| `tid` | Equal to `auth.tenant-id` |
+| `tid` | Equal to that issuer's tenant |
 | `ver` | `2.0` |
 | `azp` | Present and a well-formed UUID. This is the caller's identity, not `oid`/`sub` |
 | `sub` == `oid` | Proves the token is app-only. `idtyp` is **not** required — Entra omits it unless it is enabled as an optional claim |
@@ -56,7 +70,7 @@ is never logged or returned.
 
 ## Metrics
 
-`auth.token.validation.success`, `auth.token.validation.failure{reason}` and, in `OBSERVE` mode,
+`auth.token.validation.success{issuer}`, `auth.token.validation.failure{reason}` and, in `OBSERVE` mode,
 `auth.token.validation.observed{reason}` — scraped from `/actuator/prometheus`.
 
 ## Entra prerequisites

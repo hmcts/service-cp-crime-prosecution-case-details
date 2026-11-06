@@ -54,13 +54,13 @@ class EntraTokenValidatorTest {
     void setUp() {
         final JWKSource<SecurityContext> jwkSource =
             new ImmutableJWKSet<>(new JWKSet(SIGNING_KEY.toPublicJWK()));
-        validator = new EntraTokenValidator(jwkSource, authProperties());
+        validator = new EntraTokenValidator(jwksUri -> jwkSource, authProperties());
     }
 
     private static AuthProperties authProperties() {
         final MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("test");
-        return new AuthProperties(AuthMode.ENFORCE, TENANT_ID, AUDIENCE, "", "",
+        return new AuthProperties(AuthMode.ENFORCE, TENANT_ID, AUDIENCE, "", "", "", "", "", "",
             CLOCK_SKEW_SECONDS, 3600L, ROLE, environment);
     }
 
