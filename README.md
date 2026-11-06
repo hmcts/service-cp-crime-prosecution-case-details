@@ -102,8 +102,10 @@ The service validates Entra app-only access tokens on every non-exempt request. 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `AUTH_MODE` | `ENFORCE` | `OFF`, `OBSERVE` or `ENFORCE` |
-| `AUTH_TENANT_ID` | _(none — startup fails)_ | Token-issuing Entra tenant; derives issuer and JWKS URI |
-| `AUTH_AUDIENCE` | _(none — startup fails)_ | This API's own audience |
+| `AUTH_TENANT_ID` | _(none — startup fails)_ | Primary token-issuing Entra tenant; derives issuer and JWKS URI |
+| `AUTH_AUDIENCE` | _(none — startup fails)_ | This API's own audience in the primary tenant |
+| `AUTH_CP_TENANT_ID` | _(none — CP tokens rejected)_ | CP issuing tenant; set with `AUTH_CP_AUDIENCE` or not at all |
+| `AUTH_CP_AUDIENCE` | _(none — CP tokens rejected)_ | This API's own audience in the CP tenant |
 | `AUTH_ROLES` | _(none — startup fails)_ | Comma-separated app roles accepted (`app.read`) |
 | `AUTH_CLOCK_SKEW_SECONDS` | `60` | Skew for `exp`/`nbf`, capped at 300 |
 | `AUTH_JWKS_CACHE_TTL_SECONDS` | `3600` | JWKS cache lifetime |

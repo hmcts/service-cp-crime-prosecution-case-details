@@ -42,6 +42,8 @@ public class EntraAuthenticationFilter extends OncePerRequestFilter {
     private static final String FAILURE_METRIC = "auth.token.validation.failure";
     private static final String OBSERVED_METRIC = "auth.token.validation.observed";
     private static final String REASON_TAG = "reason";
+    /** primary or cp: shows when CP traffic has stopped. */
+    private static final String ISSUER_TAG = "issuer";
 
     private final AuthProperties authProperties;
     private final EntraTokenValidator tokenValidator;
@@ -75,7 +77,7 @@ public class EntraAuthenticationFilter extends OncePerRequestFilter {
                                     final FilterChain filterChain) throws ServletException, IOException {
         try {
             final CallerIdentity caller = tokenValidator.validate(request.getHeader(HttpHeaders.AUTHORIZATION));
-            meterRegistry.counter(SUCCESS_METRIC).increment();
+            meterRegistry.counter(SUCCESS_METRIC, ISSUER_TAG, caller.issuerName()).increment();
             MDC.put(CLIENT_ID, caller.clientId());
             MDC.put(CLIENT_VERIFIED, String.valueOf(caller.verified()));
             filterChain.doFilter(request, response);
